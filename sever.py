@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 import paho.mqtt.client as paho
+import json
 import socket
+
+from models.data import Data as Data
 
 # MQTT broker hosted on local machine
 mqttc = paho.Client()
@@ -16,9 +19,21 @@ def on_connect(self, mosq, obj, rc):
     print("Connected rc: " + str(rc))
 
 
-def on_message(mosq, obj, msg):
-    print("[Received] Topic: " + msg.topic +
-          ", Message: " + str(msg.payload) + "\n")
+# def on_message(mosq, obj, msg):
+#     print("[Received] Topic: " + msg.topic +
+#           ", Message: " + str(msg.payload) + "\n")
+
+def on_message(client, userdata, msg):
+    topic=msg.topic
+    m_decode=str(msg.payload.decode("utf-8","ignore"))
+    print("data Received type",type(m_decode))
+    print("data Received",m_decode)
+    print("Converting from Json to Object")
+    m_in=json.loads(m_decode) #decode json data
+    print(type(m_in))
+    firstDataReceived = Data(m_in.message)
+    print("RRRRR",firstDataReceived)
+    print("broker 2 address = ",m_in["broker2"])
 
 
 def on_subscribe(mosq, obj, mid, granted_qos):
