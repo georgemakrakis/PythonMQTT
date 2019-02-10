@@ -37,11 +37,8 @@ client.subscribe("house/bulbs/bulb1")
 print("Publishing message to topic","house/bulbs/bulb1")
 
 firstData = Data("Hello World")
-firstDataDictionary ={
-    "message": firstData.message
-}
 
-data_out=json.dumps(firstDataDictionary) # encode object to JSON
+data_out=json.dumps(firstData.__dict__) # encode object to JSON
 
 client.publish("house/bulbs/bulb1",data_out)
 time.sleep(4) # wait
