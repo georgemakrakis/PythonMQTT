@@ -2,14 +2,9 @@
 import paho.mqtt.client as mqtt #import the client1
 import json
 import time
+import datetime
 
-from models.data import Data as Data
-
-# def on_message(client, userdata, message):
-#     print("message received " ,str(message.payload.decode("utf-8")))
-#     print("message topic=",message.topic)
-#     print("message qos=",message.qos)
-#     print("message retain flag=",message.retain)
+from models.measurements import Measurements as Measurements
 
 def on_message(client, userdata, msg):
     topic=msg.topic
@@ -19,9 +14,13 @@ def on_message(client, userdata, msg):
     print("Converting from Json to Object")
     m_in=json.loads(m_decode) #decode json data
     print(type(m_in))
-    firstDataReceived = Data(m_in["message"])
-    print("RRRRR",firstDataReceived.message)
     print("broker 2 address = ",m_in["broker2"])
+
+
+def read_data():
+    # Here a call to the modbus must happen to fetch the data
+    timestamp = datetime.datetime.now().strftime("%Y-%-m-%-d %H:%M:%S.%f %Z%z")
+    return Measurements(1, timestamp, "no failure", [])
 
 broker_address="127.0.0.1"
 #broker_address="iot.eclipse.org"
@@ -33,13 +32,13 @@ client.connect(broker_address) #connect to broker
 
 client.loop_start() #start the loop
 print("Subscribing to topic","house/bulbs/bulb1")
-client.subscribe("house/bulbs/bulb1")
-print("Publishing message to topic","house/bulbs/bulb1")
+client.subscribe("meters/sendData")
+print("Publishing message to topic","meters/sendData")
 
-firstData = Data("Hello World")
+dataToSend = read_data()
 
-data_out=json.dumps(firstData.__dict__) # encode object to JSON
+data_out=json.dumps(dataToSend.__dict__) # encode object to JSON
 
-client.publish("house/bulbs/bulb1",data_out)
+client.publish("meters/sendData",data_out)
 time.sleep(4) # wait
 client.loop_stop() #stop the loop
