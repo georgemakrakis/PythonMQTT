@@ -3,7 +3,7 @@ import paho.mqtt.client as paho
 import json
 import socket
 
-from models.measurements import measurements as measurements
+from models.measurements import Measurements as Measurements
 
 # MQTT broker hosted on local machine
 mqttc = paho.Client()
