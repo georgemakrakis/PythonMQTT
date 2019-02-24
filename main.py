@@ -4,6 +4,7 @@ import json
 import time
 import datetime
 
+from pymodbus.client.sync import ModbusTcpClient as ModbusTcpClient
 from models.measurements import Measurements as Measurements
 
 def on_message(client, userdata, msg):
@@ -16,11 +17,25 @@ def on_message(client, userdata, msg):
     print(type(m_in))
     print("broker 2 address = ",m_in["broker2"])
 
+def readModbus(host, port, address, registers, roundingFactor):
+    client = ModbusTcpClient(host, port)
+    metrics = client.read_holding_registers(address, registers, unit=0x1)
+    result = []
+    for res in metrics.registers:
+        result.append(round(res * roundingFactor, 2))
+    client.close()
+
+    return result
+
 
 def read_data():
     # Here a call to the modbus must happen to fetch the data
     timestamp = datetime.datetime.now().strftime("%Y-%-m-%-d %H:%M:%S.%f %Z%z")
-    return Measurements(1, timestamp, "no failure", [])
+    volts = readModbus('192.168.3.100', 502, 13312, 3, 0.1)
+    amperes = readModbus('192.168.3.100', 502, 13318, 3, 0.1)
+    kWh = readModbus('192.168.3.100', 502, 13324, 3, 0.001)
+
+    return Measurements(timestamp, "no failure", volts, amperes, kWh)
 
 broker_address="127.0.0.1"
 #broker_address="iot.eclipse.org"
@@ -30,15 +45,18 @@ client.on_message=on_message #attach function to callback
 print("connecting to broker")
 client.connect(broker_address) #connect to broker
 
-client.loop_start() #start the loop
-print("Subscribing to topic","house/bulbs/bulb1")
-client.subscribe("meters/sendData")
-print("Publishing message to topic","meters/sendData")
+while True:
+    client.loop_start() #start the loop
+    print("Subscribing to topic","house/bulbs/bulb1")
+    client.subscribe("meters/sendData")
+    print("Publishing message to topic","meters/sendData")
 
-dataToSend = read_data()
+    dataToSend = read_data()
 
-data_out=json.dumps(dataToSend.__dict__) # encode object to JSON
+    data_out=json.dumps(dataToSend.__dict__) # encode object to JSON
 
-client.publish("meters/sendData",data_out)
-time.sleep(4) # wait
-client.loop_stop() #stop the loop
+    client.publish("meters/sendData",data_out)
+    time.sleep(4) # wait
+    client.loop_stop() #stop the loop
+
+    time.sleep(5)

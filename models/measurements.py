@@ -1,6 +1,7 @@
 class Measurements:
-    def __init__(self, id, timestamp, failure, measures):
-        self.id = id
+    def __init__(self, timestamp, failure, volts, amperes, kWh):
         self.timestamp= timestamp
         self.failure = failure
-        self.measures = []
+        self.volts = volts
+        self.amperes = amperes
+        self.kWh = kWh
