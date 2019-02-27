@@ -1,3 +1,4 @@
+configparser==3.7.3
 paho-mqtt==1.4.0
 pymodbus==2.1.0
 pyserial==3.4

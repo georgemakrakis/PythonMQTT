@@ -3,9 +3,14 @@ import paho.mqtt.client as mqtt #import the client1
 import json
 import time
 import datetime
+import configparser
 
 from pymodbus.client.sync import ModbusTcpClient as ModbusTcpClient
 from models.measurements import Measurements as Measurements
+
+# Configuration initialization
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 def on_message(client, userdata, msg):
     topic=msg.topic
@@ -31,13 +36,13 @@ def readModbus(host, port, address, registers, roundingFactor):
 def read_data():
     # Here a call to the modbus must happen to fetch the data
     timestamp = datetime.datetime.now().strftime("%Y-%-m-%-d %H:%M:%S.%f %Z%z")
-    volts = readModbus('192.168.3.100', 502, 13312, 3, 0.1)
-    amperes = readModbus('192.168.3.100', 502, 13318, 3, 0.1)
-    kWh = readModbus('192.168.3.100', 502, 13324, 3, 0.001)
+    volts = readModbus(config['DEFAULT']['METER_HOST'], config['DEFAULT']['METER_PORT'], 13312, 3, 0.1)
+    amperes = readModbus(config['DEFAULT']['METER_HOST'], config['DEFAULT']['METER_PORT'], 13318, 3, 0.1)
+    kWh = readModbus(config['DEFAULT']['METER_HOST'], config['DEFAULT']['METER_PORT'], 13324, 3, 0.001)
 
     return Measurements(timestamp, "no failure", volts, amperes, kWh)
 
-broker_address="127.0.0.1"
+broker_address=config['DEFAULT']['MQTT_BROKER_IP']
 #broker_address="iot.eclipse.org"
 print("creating new instance")
 client = mqtt.Client("P1") #create new instance

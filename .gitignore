@@ -103,3 +103,6 @@ venv.bak/
 # mypy
 .mypy_cache/
 dataExample.json
+
+# configuration file - enviromental variables
+config.ini
